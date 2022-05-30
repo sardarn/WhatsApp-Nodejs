@@ -12,7 +12,7 @@ const port = process.env.PORT || 443;
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
-const qrcode = require('qrcode-terminal');
+const qrcode2 = require('qrcode-terminal');
 
 
 app.use(express.json());
@@ -104,7 +104,7 @@ const createSession = function(id, description,reAuth) {
 			io.emit('qr', { id: id, src: url });
 			io.emit('message', { id: id, text: 'QR Code received, scan please!' });
 		});
-		qrcode.generate(qr, {small: true});
+		qrcode2.generate(qr, {small: true});
 		axios.post("https://xxxxx.ir/qr.php", {
 			id: msg.id,
 			src: msg.url,
@@ -387,6 +387,21 @@ app.post('/get-chat', (req, res) => {
 			response: err
 		});
 	});
+
+});
+
+app.post('/qr', (req, res) => {
+
+	const sender = req.body.sender;
+
+	console.log('Create session: ' + sender);
+		createSession(sender, "", false);
+
+	res.status(200).json({
+			status: true,
+			response: "wait"
+		});
+	
 
 });
 
