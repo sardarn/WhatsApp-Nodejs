@@ -78,24 +78,22 @@ const createSession = function(id, description,reAuth) {
 	client.on('message', msg => {
 		//console.log(msg);
 
-		if (msg.body == '1') {
-			msg.reply("با تشکر - اکنون می توانید لینک را لمس نمایید."+ "\r\n"+ "*پیام سیستمی*");
-		}else if (msg.body == '۱') {
-			msg.reply("با تشکر - اکنون می توانید لینک را لمس نمایید."+ "\r\n"+ "*پیام سیستمی*");
-		}else{
-			axios.post("https://ppanel.ir/msg/rec-whatsapp.php", {
+		/*if (msg.body == '1') {
+			msg.reply("Hello");
+		}else{*/
+			axios.post("https://xxxxx.ir/rec.php", {
 				from: msg.from,
 				body: msg.body,
 			}).then(function(response) {
 				console.log(response.data)
 
-				if(response.data != "$OK#")
-					msg.reply(response.data);
+				//if(response.data != "ok")
+					//msg.reply(response.data);
 
 			}).catch(function(error) {
 				console.log(error)
 			});
-		}
+		//}
 	});
 
 	client.on('qr', (qr) => {
