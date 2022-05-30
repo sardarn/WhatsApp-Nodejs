@@ -19,7 +19,7 @@ app.use(express.urlencoded({
 }));
 
 app.get('/', (req, res) => {
-	res.sendFile('index-multiple-device.html', {
+	res.sendFile('index.html', {
 		root: __dirname
 	});
 });
@@ -54,9 +54,9 @@ const createSession = function(id, description,reAuth) {
 	const client = new Client({
 		restartOnAuthFail: false,
 		puppeteer: {
-			executablePath:  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+			//executablePath:  'C:/Program Files/Google/Chrome/Application/chrome.exe',
 			//executablePath: 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
-			//executablePath: '/usr/bin/google-chrome-stable',
+			executablePath: '/usr/bin/google-chrome-stable',
 			headless: true,
 			userDataDir: SESSION_FILE_PATH,
 			args: [
