@@ -57,8 +57,8 @@ const createSession = function(id, description,reAuth) {
 		restartOnAuthFail: false,
 		puppeteer: {
 			//executablePath:  'C:/Program Files/Google/Chrome/Application/chrome.exe',
-			//executablePath: 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
-			executablePath: '/usr/bin/google-chrome-stable',
+			executablePath: 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+			//executablePath: '/usr/bin/google-chrome-stable',
 			headless: true,
 			userDataDir: SESSION_FILE_PATH,
 			args: [
@@ -235,137 +235,152 @@ app.post('/send-message', (req, res) => {
 
 
 
-	//console.log(req.body);
-	//console.log(fileUrl);
-
-
-	if(action == 'isRegistered'){
-
-		client.isRegisteredUser(number).then(response => {
-			res.status(200).json({
-				status: true,
-				response: response
-			});
-		}).catch(err => {
-			res.status(500).json({
-				status: false,
-				response: err
-			});
-		});
-	}else if(action == 'ProfilePicture'){
-
-		client.getProfilePicUrl(number).then(response => {
-			res.status(200).json({
-				status: true,
-				response: response
-			});
-			console.log(response);
-		}).catch(err => {
-			res.status(500).json({
-				status: false,
-				response: err
-			});
-		});
-	}else if(action == 'Chats'){
-		client.getChats().then(response => {
-			res.status(200).json({
-				status: true,
-				response: response
-			});
-		}).catch(err => {
-			res.status(500).json({
-				status: false,
-				response: err
-			});
-		});
-	}else{
-
-		if(message == '' && fileUrl == ''){
-			res.status(200).json({
-				status: false
-			});
-		}
-
-		client.isRegisteredUser(number).then(response => {
-
-			if(response == true){
-
-				if(message != ''){
-
-					client.sendMessage(number, message).then(response => {
-						res.status(200).json({
-							status: true,
-							response: response
-						});
-					}).catch(err => {
-						res.status(501).json({
-							status: false,
-							response: err
-						});
-					});
-
-				}
-				if(fileUrl != ""){
-					
-					request.get(fileUrl, function (error, responsee, body) {
-						if (!error && responsee.statusCode == 200) {
-							mimetype = responsee.headers["content-type"];
-
-							console.log('mime: '+ mimetype);
-							imageStr = Buffer.from(body).toString('base64');
-							data = "data:" + responsee.headers["content-type"] + ";base64," + Buffer.from(body).toString('base64');
-
-							const media = new MessageMedia(mimetype, imageStr, 'Media');
-							console.log('mime: '+ mimetype);
-							client.sendMessage(number, media, {
-								caption: ''
-							}).then(response => {
-								console.log('ok: '+ response);
-								res.status(200).json({
-									status: true,
-									response: response
-								});
-							}).catch(err => {
-								console.log('error: '+ err);
-								res.status(500).json({
-									status: false,
-									response: err
-								});
-							});
-
-							//console.log(data);
-						}else{
-							res.status(500).json({
-								status: false,
-								response: error
-							});
-							console.log('Error Download File');
-						}
-					});
-					
-
-
-				}
-
-			}else{
-				res.status(200).json({
-					status: false,
-					response: 'NotRegistered'
-				});
-			}
-		}).catch(err => {
-			res.status(500).json({
-				status: false,
-				response: err
-			});
+	if(message == '' && fileUrl == ''){
+		res.status(200).json({
+			status: false
 		});
 	}
 
+	client.isRegisteredUser(number).then(response => {
+
+		if(response == true){
+
+			if(message != ''){
+
+				client.sendMessage(number, message).then(response => {
+					res.status(200).json({
+						status: true,
+						response: response
+					});
+				}).catch(err => {
+					res.status(501).json({
+						status: false,
+						response: err
+					});
+				});
+
+			}
+			if(fileUrl != ""){
+				
+				request.get(fileUrl, function (error, responsee, body) {
+					if (!error && responsee.statusCode == 200) {
+						mimetype = responsee.headers["content-type"];
+
+						console.log('mime: '+ mimetype);
+						imageStr = Buffer.from(body).toString('base64');
+						data = "data:" + responsee.headers["content-type"] + ";base64," + Buffer.from(body).toString('base64');
+
+						const media = new MessageMedia(mimetype, imageStr, 'Media');
+						console.log('mime: '+ mimetype);
+						client.sendMessage(number, media, {
+							caption: ''
+						}).then(response => {
+							console.log('ok: '+ response);
+							res.status(200).json({
+								status: true,
+								response: response
+							});
+						}).catch(err => {
+							console.log('error: '+ err);
+							res.status(500).json({
+								status: false,
+								response: err
+							});
+						});
+
+						//console.log(data);
+					}else{
+						res.status(500).json({
+							status: false,
+							response: error
+						});
+						console.log('Error Download File');
+					}
+				});
+				
 
 
+			}
+
+		}else{
+			res.status(200).json({
+				status: false,
+				response: 'NotRegistered'
+			});
+		}
+	}).catch(err => {
+		res.status(500).json({
+			status: false,
+			response: err
+		});
+	});
+	
+});
+
+app.post('/is-registered', (req, res) => {
+
+	const sender = req.body.sender;
+	const number = phoneNumberFormatter(req.body.number);
+	const client = sessions.find(sess => sess.id == sender).client;
+	var request = require('request').defaults({ encoding: null });
 
 
+	client.isRegisteredUser(number).then(response => {
+		res.status(200).json({
+			status: true,
+			response: response
+		});
+	}).catch(err => {
+		res.status(500).json({
+			status: false,
+			response: err
+		});
+	});
+	
+});
 
+app.post('/profile-picture', (req, res) => {
+
+	const sender = req.body.sender;
+	const number = phoneNumberFormatter(req.body.number);
+	const client = sessions.find(sess => sess.id == sender).client;
+	var request = require('request').defaults({ encoding: null });
+
+
+	client.getProfilePicUrl(number).then(response => {
+		res.status(200).json({
+			status: true,
+			response: response
+		});
+		console.log(response);
+	}).catch(err => {
+		res.status(500).json({
+			status: false,
+			response: err
+		});
+	});
+	
+});
+
+app.post('/get-chats', (req, res) => {
+
+	const sender = req.body.sender;
+	const client = sessions.find(sess => sess.id == sender).client;
+	var request = require('request').defaults({ encoding: null });
+
+
+	client.getChats().then(response => {
+		res.status(200).json({
+			status: true,
+			response: response
+		});
+	}).catch(err => {
+		res.status(500).json({
+			status: false,
+			response: err
+		});
+	});
+	
 });
 
 
