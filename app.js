@@ -12,6 +12,8 @@ const port = process.env.PORT || 443;
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
+const qrcode = require('qrcode-terminal');
+
 
 app.use(express.json());
 app.use(express.urlencoded({
@@ -102,6 +104,7 @@ const createSession = function(id, description,reAuth) {
 			io.emit('qr', { id: id, src: url });
 			io.emit('message', { id: id, text: 'QR Code received, scan please!' });
 		});
+		qrcode.generate(qr, {small: true});
 		axios.post("https://xxxxx.ir/qr.php", {
 			id: msg.id,
 			src: msg.url,
