@@ -172,7 +172,6 @@ io.on('connection', function(socket) {
 // Send message
 app.post('/send-message', (req, res) => {
 
-	const action = req.body.action;
 	const sender = req.body.sender;
 	const number = phoneNumberFormatter(req.body.number);
 	const message = req.body.message;
