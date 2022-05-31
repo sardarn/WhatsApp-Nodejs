@@ -30,14 +30,6 @@ app.get('/', (req, res) => {
 const sessions = [];
 const SESSIONS_FILE = './whatsapp-sessions.json';
 
-const setSessionsFile = function(sessions) {
-	fs.writeFile(SESSIONS_FILE, JSON.stringify(sessions), function(err) {
-		if (err) {
-			console.log(err);
-		}
-	});
-}
-
 const getSessionsFile = function() {
 	return JSON.parse(fs.readFileSync(SESSIONS_FILE));
 }
@@ -117,13 +109,13 @@ const createSession = function(id, description,reAuth) {
 		console.error("ready");
 	});
 
-	client.on('authenticated', (session) => {
+	client.on('authenticated', () => {
 		io.emit('authenticated', { id: id });
 		io.emit('message', { id: id, text: 'Whatsapp is authenticated!' });
 		console.error("authenticated");
 	});
 
-	client.on('auth_failure', function(session) {
+	client.on('auth_failure', function() {
 		io.emit('message', { id: id, text: 'Auth failure, Retry...' });
 		client.destroy();
 	});
@@ -139,7 +131,6 @@ const createSession = function(id, description,reAuth) {
 		client: client
 	});
 
-	const savedSessions = getSessionsFile();
 }
 
 const init = function(socket) {
@@ -243,12 +234,9 @@ app.post('/send-message', (req, res) => {
 							status: false,
 							response: error
 						});
-						console.log('Error Download File');
+						console.log('Error Download File!');
 					}
 				});
-				
-
-
 			}
 
 		}else{
@@ -271,7 +259,6 @@ app.post('/is-registered', (req, res) => {
 	const sender = req.body.sender;
 	const number = phoneNumberFormatter(req.body.number);
 	const client = sessions.find(sess => sess.id == sender).client;
-	var request = require('request').defaults({ encoding: null });
 
 
 	client.isRegisteredUser(number).then(response => {
@@ -293,7 +280,6 @@ app.post('/profile-picture', (req, res) => {
 	const sender = req.body.sender;
 	const number = phoneNumberFormatter(req.body.number);
 	const client = sessions.find(sess => sess.id == sender).client;
-	var request = require('request').defaults({ encoding: null });
 
 
 	client.getProfilePicUrl(number).then(response => {
@@ -315,7 +301,6 @@ app.post('/get-chats', (req, res) => {
 
 	const sender = req.body.sender;
 	const client = sessions.find(sess => sess.id == sender).client;
-	var request = require('request').defaults({ encoding: null });
 
 
 	client.getChats().then(response => {
