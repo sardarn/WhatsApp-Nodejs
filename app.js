@@ -15,6 +15,7 @@ const io = socketIO(server);
 const qrcode2 = require('qrcode-terminal');
 
 
+
 app.use(express.json());
 app.use(express.urlencoded({
 	extended: true
