@@ -44,10 +44,6 @@ const getSessionsFile = function() {
 const createSession = function(id, description,reAuth) {
 	console.log('Creating session: ' + id);
 	const SESSION_FILE_PATH = `./whatsapp-session-${id}`;
-	/*let sessionCfg;
-	if (fs.existsSync(SESSION_FILE_PATH)) {
-		sessionCfg = require(SESSION_FILE_PATH);
-	}*/
 	
 	if (!fs.existsSync(SESSION_FILE_PATH)){
 		fs.mkdirSync(SESSION_FILE_PATH);
@@ -57,8 +53,8 @@ const createSession = function(id, description,reAuth) {
 		restartOnAuthFail: false,
 		puppeteer: {
 			//executablePath:  'C:/Program Files/Google/Chrome/Application/chrome.exe',
-			executablePath: 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
-			//executablePath: '/usr/bin/google-chrome-stable',
+			//executablePath: 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+			executablePath: '/usr/bin/google-chrome-stable',
 			headless: true,
 			userDataDir: SESSION_FILE_PATH,
 			args: [
@@ -72,7 +68,6 @@ const createSession = function(id, description,reAuth) {
 				'--disable-gpu'
 			],
 		},
-		//session: sessionCfg
 	});
 
 	client.initialize();
@@ -119,57 +114,23 @@ const createSession = function(id, description,reAuth) {
 		io.emit('ready', { id: id });
 		io.emit('message', { id: id, text: 'Whatsapp is ready!' });
 		console.error("ready");
-
-		//const savedSessions = getSessionsFile();
-		//const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
-		//savedSessions[sessionIndex].ready = true;
-		//setSessionsFile(savedSessions);
 	});
 
 	client.on('authenticated', (session) => {
 		io.emit('authenticated', { id: id });
 		io.emit('message', { id: id, text: 'Whatsapp is authenticated!' });
 		console.error("authenticated");
-		/*sessionCfg = session;
-		fs.writeFile(SESSION_FILE_PATH, JSON.stringify(session), function(err) {
-			if (err) {
-				console.error(err);
-			}
-		});*/
 	});
 
 	client.on('auth_failure', function(session) {
-
-		/*if(reAuth == 1)
-		{
-			fs.unlinkSync(SESSION_FILE_PATH, function(err) {
-				if(err) return console.log(err);
-				console.log('Session file deleted!');
-			});
-		}*/
 		io.emit('message', { id: id, text: 'Auth failure, Retry...' });
 		client.destroy();
 	});
 
 	client.on('disconnected', (reason) => {
 		io.emit('message', { id: id, text: 'Whatsapp is disconnected!' });
-		/*fs.unlinkSync(SESSION_FILE_PATH, function(err) {
-			if(err) return console.log(err);
-			console.log('Session file deleted!');
-		});
-		client.destroy();
-		client.initialize();
-
-		// Menghapus pada file sessions
-		const savedSessions = getSessionsFile();
-		const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
-		savedSessions.splice(sessionIndex, 1);
-		setSessionsFile(savedSessions);
-
-		io.emit('remove-session', id);*/
 	});
 
-	// Tambahkan client ke sessions
 	sessions.push({
 		id: id,
 		description: description,
@@ -177,18 +138,7 @@ const createSession = function(id, description,reAuth) {
 		client: client
 	});
 
-	// Menambahkan session ke file
 	const savedSessions = getSessionsFile();
-	/*const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
-
-    if (sessionIndex == -1) {
-      savedSessions.push({
-        id: id,
-        description: description,
-        ready: false,
-      });
-      setSessionsFile(savedSessions);
-    }*/
 }
 
 const init = function(socket) {
@@ -227,7 +177,6 @@ app.post('/send-message', (req, res) => {
 	const number = phoneNumberFormatter(req.body.number);
 	const message = req.body.message;
 	const fileUrl = req.body.file;
-	const fileName = req.body.fileName;
 	let mimetype;
 	let imageStr;
 	const client = sessions.find(sess => sess.id == sender).client;
