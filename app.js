@@ -68,7 +68,7 @@ const createSession = function(id, description,reAuth) {
 	client.on('message', async msg => {
 		//console.log(msg);
 		
-		if(msg.hasMedia) {
+		/*if(msg.hasMedia) {
 			const media =  await msg.downloadMedia();
 			//console.log(media.mimetype);
 			
@@ -87,7 +87,7 @@ const createSession = function(id, description,reAuth) {
 					}
 				  }
 				);
-		}
+		}*/
 
 		/*if (msg.body == '1') {
 			msg.reply("Hello");
