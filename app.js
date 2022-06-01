@@ -65,13 +65,34 @@ const createSession = function(id, description,reAuth) {
 
 	client.initialize();
 
-	client.on('message', msg => {
+	client.on('message', async msg => {
 		//console.log(msg);
+		
+		if(msg.hasMedia) {
+			const media =  await msg.downloadMedia();
+			//console.log(media.mimetype);
+			
+			if(typeof media.filename === 'undefined')
+				media.filename = "file-" + msg.id.id +  "." + media.mimetype.split("/")[1];
+			else
+				media.filename = "file-" + msg.id.id +  "-" + media.filename;
+			
+			fs.writeFile(
+				  "./upload/" + media.filename,
+				  media.data,
+				  "base64",
+				  function (err) {
+					if (err) {
+					  console.log(err);
+					}
+				  }
+				);
+		}
 
 		/*if (msg.body == '1') {
 			msg.reply("Hello");
 		}else{*/
-			axios.post("https://xxxxx.ir/rec.php", {
+			/*axios.post("https://xxxxx.ir/rec.php", {
 				from: msg.from,
 				body: msg.body,
 			}).then(function(response) {
@@ -82,7 +103,7 @@ const createSession = function(id, description,reAuth) {
 
 			}).catch(function(error) {
 				console.log(error)
-			});
+			});*/
 		//}
 	});
 
