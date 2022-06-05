@@ -13,6 +13,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 const qrcode2 = require('qrcode-terminal');
+var rimraf = require("rimraf");
 
 
 
