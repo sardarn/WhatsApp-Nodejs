@@ -150,10 +150,26 @@ const createSession = function(id, description,reAuth) {
 	client.on('auth_failure', function() {
 		io.emit('message', { id: id, text: 'Auth failure, Retry...' });
 		client.destroy();
+		axios.post("https://tamiir.com/cp/error.php", {
+			id: id,
+			error: 'auth_failure',
+		}).then(function(response) {
+			console.log(response.data)
+		}).catch(function(error) {
+			console.log(error)
+		});
 	});
 
 	client.on('disconnected', (reason) => {
 		io.emit('message', { id: id, text: 'Whatsapp is disconnected!' });
+		axios.post("https://tamiir.com/cp/error.php", {
+			id: id,
+			error: 'disconnected',
+		}).then(function(response) {
+			console.log(response.data)
+		}).catch(function(error) {
+			console.log(error)
+		});
 	});
 
 	sessions.push({
