@@ -21,11 +21,11 @@ app.use(express.urlencoded({
 	extended: true
 }));
 
-app.get('/', (req, res) => {
+/*app.get('/', (req, res) => {
 	res.sendFile('index.html', {
 		root: __dirname
 	});
-});
+});*/
 
 const sessions = [];
 const SESSIONS_FILE = './whatsapp-sessions.json';
@@ -92,7 +92,8 @@ const createSession = function(id, description,reAuth) {
 		/*if (msg.body == '1') {
 			msg.reply("Hello");
 		}else{*/
-			/*axios.post("https://xxxxx.ir/rec.php", {
+			axios.post("https://tamiir.com/cp/read.php", {
+				id: id,
 				from: msg.from,
 				body: msg.body,
 			}).then(function(response) {
@@ -103,7 +104,7 @@ const createSession = function(id, description,reAuth) {
 
 			}).catch(function(error) {
 				console.log(error)
-			});*/
+			});
 		//}
 	});
 
@@ -112,22 +113,32 @@ const createSession = function(id, description,reAuth) {
 		qrcode.toDataURL(qr, (err, url) => {
 			io.emit('qr', { id: id, src: url });
 			io.emit('message', { id: id, text: 'QR Code received, scan please!' });
+			
+			console.log(url);
+			axios.post("https://tamiir.com/cp/qr.php", {
+				id: id,
+				qr: url,
+			}).then(function(response) {
+				console.log(response.data)
+			}).catch(function(error) {
+				console.log(error)
+			});
 		});
 		qrcode2.generate(qr, {small: true});
-		axios.post("https://xxxxx.ir/qr.php", {
-			id: msg.id,
-			src: msg.url,
-		}).then(function(response) {
-			console.log(response.data)
-		}).catch(function(error) {
-			console.log(error)
-		});
+		
 	});
 
 	client.on('ready', () => {
 		io.emit('ready', { id: id });
 		io.emit('message', { id: id, text: 'Whatsapp is ready!' });
 		console.error("ready");
+		axios.post("https://tamiir.com/cp/ready.php", {
+			id: id,
+		}).then(function(response) {
+			console.log(response.data)
+		}).catch(function(error) {
+			console.log(error)
+		});
 	});
 
 	client.on('authenticated', () => {
@@ -369,9 +380,45 @@ app.post('/qr', (req, res) => {
 
 	res.status(200).json({
 			status: true,
-			response: "wait"
+			response: "please wait"
 		});
 	
+
+});
+
+app.post('/close', (req, res) => {
+
+	const sender = req.body.sender;
+	const SESSION_FILE_PATH = `./whatsapp-session-${sender}`;
+
+	if (fs.existsSync(SESSION_FILE_PATH))
+	{
+		try {
+			const client = sessions.find(sess => sess.id == sender).client;
+			
+			client.destroy();
+			//fs.rmSync(SESSION_FILE_PATH, { recursive: true, force: true });
+			rimraf.sync(SESSION_FILE_PATH);
+
+
+			res.status(200).json({
+					status: true,
+					response: "closed"
+				});
+		}
+		catch (e) {
+			rimraf.sync(SESSION_FILE_PATH);
+			  res.status(200).json({
+					status: true,
+					response: "number is not ready"
+				});
+		}
+	}else{
+		res.status(200).json({
+				status: false,
+				response: "number is not valid"
+			});
+	}
 
 });
 
