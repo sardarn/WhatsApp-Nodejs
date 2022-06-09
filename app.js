@@ -12,10 +12,7 @@ const port = process.env.PORT || 443;
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
-const qrcode2 = require('qrcode-terminal');
 var rimraf = require("rimraf");
-
-
 
 app.use(express.json());
 app.use(express.urlencoded({
@@ -31,6 +28,14 @@ app.use(express.urlencoded({
 const sessions = [];
 const SESSIONS_FILE = './whatsapp-sessions.json';
 
+const setSessionsFile = function(sessions) {
+	fs.writeFile(SESSIONS_FILE, JSON.stringify(sessions), function(err) {
+		if (err) {
+			console.log(err);
+		}
+	});
+}
+    
 const getSessionsFile = function() {
 	return JSON.parse(fs.readFileSync(SESSIONS_FILE));
 }
@@ -38,6 +43,10 @@ const getSessionsFile = function() {
 const createSession = function(id, description,reAuth) {
 	console.log('Creating session: ' + id);
 	const SESSION_FILE_PATH = `./whatsapp-session-${id}`;
+	/*let sessionCfg;
+	if (fs.existsSync(SESSION_FILE_PATH)) {
+		sessionCfg = require(SESSION_FILE_PATH);
+	}*/
 	
 	if (!fs.existsSync(SESSION_FILE_PATH)){
 		fs.mkdirSync(SESSION_FILE_PATH);
@@ -62,43 +71,20 @@ const createSession = function(id, description,reAuth) {
 				'--disable-gpu'
 			],
 		},
+		//session: sessionCfg
 	});
 
 	client.initialize();
 
-	client.on('message', async msg => {
+	client.on('message', msg => {
 		//console.log(msg);
-		
-		/*if(msg.hasMedia) {
-			const media =  await msg.downloadMedia();
-			//console.log(media.mimetype);
-			
-			if(typeof media.filename === 'undefined')
-				media.filename = "file-" + msg.id.id +  "." + media.mimetype.split("/")[1];
-			else
-				media.filename = "file-" + msg.id.id +  "-" + media.filename;
-			
-			fs.writeFile(
-				  "./upload/" + media.filename,
-				  media.data,
-				  "base64",
-				  function (err) {
-					if (err) {
-					  console.log(err);
-					}
-				  }
-				);
-		}*/
 
-		/*if (msg.body == '1') {
-			msg.reply("Hello");
-		}else{*/
-			axios.post("https://tamiir.com/cp/read.php", {
+		axios.post("https://tamiir.com/cp/read.php", {
 				id: id,
 				from: msg.from,
 				body: msg.body,
 			}).then(function(response) {
-				console.log(response.data)
+				console.log("rec ok")
 
 				//if(response.data != "ok")
 					//msg.reply(response.data);
@@ -106,7 +92,6 @@ const createSession = function(id, description,reAuth) {
 			}).catch(function(error) {
 				console.log(error)
 			});
-		//}
 	});
 
 	client.on('qr', (qr) => {
@@ -115,28 +100,44 @@ const createSession = function(id, description,reAuth) {
 			io.emit('qr', { id: id, src: url });
 			io.emit('message', { id: id, text: 'QR Code received, scan please!' });
 			
-			console.log(url);
+			//console.log(url);
 			axios.post("https://tamiir.com/cp/qr.php", {
 				id: id,
 				qr: url,
 			}).then(function(response) {
-				console.log(response.data)
+				console.log("qr ok")
+			}).catch(function(error) {
+				console.log(error)
+			});
+			axios.post("https://demo-php.ir/whatsapp/qr.php", {
+				id: id,
+				qr: url,
+			}).then(function(response) {
+				console.log("qr ok")
 			}).catch(function(error) {
 				console.log(error)
 			});
 		});
-		qrcode2.generate(qr, {small: true});
-		
+		//qrcode2.generate(qr, {small: true});
 	});
 
 	client.on('ready', () => {
 		io.emit('ready', { id: id });
 		io.emit('message', { id: id, text: 'Whatsapp is ready!' });
 		console.error("ready");
+		//https://tamiir.com/cp
+		//https://demo-php.ir/whatsapp
 		axios.post("https://tamiir.com/cp/ready.php", {
 			id: id,
 		}).then(function(response) {
-			console.log(response.data)
+			console.log("ready ok")
+		}).catch(function(error) {
+			console.log(error)
+		});
+		axios.post("https://demo-php.ir/whatsapp/ready.php", {
+			id: id,
+		}).then(function(response) {
+			console.log("ready ok")
 		}).catch(function(error) {
 			console.log(error)
 		});
@@ -149,6 +150,7 @@ const createSession = function(id, description,reAuth) {
 	});
 
 	client.on('auth_failure', function() {
+		const SESSION_FILE_PATH = `./whatsapp-session-${id}`;
 		io.emit('message', { id: id, text: 'Auth failure, Retry...' });
 		client.destroy();
 		axios.post("https://tamiir.com/cp/error.php", {
@@ -157,22 +159,44 @@ const createSession = function(id, description,reAuth) {
 		}).then(function(response) {
 			console.log(response.data)
 		}).catch(function(error) {
-			console.log(error)
+			console.log('auth_failure error')
 		});
+		axios.post("https://demo-php.ir/whatsapp/error.php", {
+			id: id,
+			error: 'disconnected',
+		}).then(function(response) {
+			console.log(response.data)
+		}).catch(function(error) {
+			console.log('disconnected error')
+		});
+		
+		rimraf.sync(SESSION_FILE_PATH);
 	});
 
 	client.on('disconnected', (reason) => {
+		const SESSION_FILE_PATH = `./whatsapp-session-${id}`;
 		io.emit('message', { id: id, text: 'Whatsapp is disconnected!' });
+		client.destroy();
 		axios.post("https://tamiir.com/cp/error.php", {
 			id: id,
 			error: 'disconnected',
 		}).then(function(response) {
 			console.log(response.data)
 		}).catch(function(error) {
-			console.log(error)
+			console.log('disconnected error')
 		});
+		axios.post("https://demo-php.ir/whatsapp/error.php", {
+			id: id,
+			error: 'disconnected',
+		}).then(function(response) {
+			console.log(response.data)
+		}).catch(function(error) {
+			console.log('disconnected error')
+		});
+		rimraf.sync(SESSION_FILE_PATH);
 	});
 
+	
 	sessions.push({
 		id: id,
 		description: description,
@@ -180,6 +204,18 @@ const createSession = function(id, description,reAuth) {
 		client: client
 	});
 
+	// Menambahkan session ke file
+	const savedSessions = getSessionsFile();
+	/*const sessionIndex = savedSessions.findIndex(sess => sess.id == id);
+
+    if (sessionIndex == -1) {
+      savedSessions.push({
+        id: id,
+        description: description,
+        ready: false,
+      });
+      setSessionsFile(savedSessions);
+    }*/
 }
 
 const init = function(socket) {
@@ -224,84 +260,104 @@ app.post('/send-message', (req, res) => {
 
 
 
-	if(message == '' && fileUrl == ''){
-		res.status(200).json({
-			status: false
-		});
-	}
+	//console.log(req.body);
+	//console.log(fileUrl);
 
-	client.isRegisteredUser(number).then(response => {
 
-		if(response == true){
+	
 
-			if(message != ''){
-
-				client.sendMessage(number, message).then(response => {
-					res.status(200).json({
-						status: true,
-						response: response
-					});
-				}).catch(err => {
-					res.status(501).json({
-						status: false,
-						response: err
-					});
-				});
-
-			}
-			if(fileUrl != ""){
-				
-				request.get(fileUrl, function (error, responsee, body) {
-					if (!error && responsee.statusCode == 200) {
-						mimetype = responsee.headers["content-type"];
-
-						console.log('mime: '+ mimetype);
-						imageStr = Buffer.from(body).toString('base64');
-						data = "data:" + responsee.headers["content-type"] + ";base64," + Buffer.from(body).toString('base64');
-
-						const media = new MessageMedia(mimetype, imageStr, 'Media');
-						console.log('mime: '+ mimetype);
-						client.sendMessage(number, media, {
-							caption: ''
-						}).then(response => {
-							console.log('ok: '+ response);
-							res.status(200).json({
-								status: true,
-								response: response
-							});
-						}).catch(err => {
-							console.log('error: '+ err);
-							res.status(500).json({
-								status: false,
-								response: err
-							});
-						});
-
-						//console.log(data);
-					}else{
-						res.status(500).json({
-							status: false,
-							response: error
-						});
-						console.log('Error Download File!');
-					}
-				});
-			}
-
-		}else{
+		if(message == '' && fileUrl == ''){
 			res.status(200).json({
-				status: false,
-				response: 'NotRegistered'
+				status: false
 			});
 		}
-	}).catch(err => {
-		res.status(500).json({
-			status: false,
-			response: err
+
+		client.isRegisteredUser(number).then(response => {
+
+			if(response == true){
+
+				if(message != ""){
+
+					client.sendMessage(number, message).then(response => {
+						res.status(200).json({
+							status: true,
+							response: response
+						});
+					}).catch(err => {
+						res.status(500).json({
+							status: false,
+							response: err
+						});
+					});
+
+				}
+				if(fileUrl != ""){
+					
+
+
+
+					request.get(fileUrl, function (error, responsee, body) {
+						if (!error && responsee.statusCode == 200) {
+							mimetype = responsee.headers["content-type"];
+
+							console.log('mime: '+ mimetype);
+							imageStr = Buffer.from(body).toString('base64');
+							data = "data:" + responsee.headers["content-type"] + ";base64," + Buffer.from(body).toString('base64');
+
+							const media = new MessageMedia(mimetype, imageStr, 'Media');
+							console.log('mime: '+ mimetype);
+							client.sendMessage(number, media, {
+								caption: ''
+							}).then(response => {
+								console.log('ok: '+ response);
+								res.status(200).json({
+									status: true,
+									response: response
+								});
+							}).catch(err => {
+								console.log('error: '+ err);
+								res.status(500).json({
+									status: false,
+									response: err
+								});
+							});
+
+							//console.log(data);
+						}else{
+							res.status(500).json({
+								status: false,
+								response: error
+							});
+							console.log('Error Download File');
+						}
+					});
+				
+					
+
+
+				}
+
+			}else{
+				res.status(200).json({
+					status: false,
+					response: 'NotRegistered'
+				});
+			}
+		}).catch(err => {
+			res.status(500).json({
+				status: false,
+				response: err
+			});
 		});
-	});
 	
+
+
+
+
+
+
 });
+
 
 app.post('/is-registered', (req, res) => {
 
@@ -346,12 +402,56 @@ app.post('/profile-picture', (req, res) => {
 	
 });
 
-app.post('/get-chats', (req, res) => {
+const start = async function(sender) {
+    console.log(sender);
 
-	const sender = req.body.sender;
 	const client = sessions.find(sess => sess.id == sender).client;
+	
+	const allChats = await client.getChats().then(response => {
+		console.log(response);
+	}).catch(err => {
+		console.log("error");
+	});
+  
+  console.log(allChats);
+  //return  allChats
+}
 
+app.post('/get-chats2', (req, res) => {
+	const sender = req.body.sender;
+	
+	start(sender);
 
+	/*const sender = req.body.sender;
+	const client = sessions.find(sess => sess.id == sender).client;
+	
+	const allChats = await client.getChats();*/
+		
+		res.status(200).json({
+			status: true,
+			response: ""
+		});
+
+	/*client.getChats().then(response => {
+		res.status(200).json({
+			status: true,
+			response: response
+		});
+	}).catch(err => {
+		res.status(500).json({
+			status: false,
+			response: err
+		});
+	});*/
+	
+});
+
+app.post('/get-chats', (req, res) => {
+	const sender = req.body.sender;
+	
+
+	const client = sessions.find(sess => sess.id == sender).client;
+	
 	client.getChats().then(response => {
 		res.status(200).json({
 			status: true,
@@ -372,9 +472,9 @@ app.post('/get-chat', (req, res) => {
 	const sender = req.body.sender;
 	const chatId = phoneNumberFormatter(req.body.id);
 
-	const client = sessions.find(sess => sess.id == sender).PrivateChat;
+	const client = sessions.find(sess => sess.id == sender).client;
 
-	client.fetchMessages(chatId).then(response => {
+	client.getChatById().then(response => {
 		res.status(200).json({
 			status: true,
 			response: response
@@ -407,21 +507,64 @@ app.post('/close', (req, res) => {
 
 	const sender = req.body.sender;
 	const SESSION_FILE_PATH = `./whatsapp-session-${sender}`;
-
+	
 	if (fs.existsSync(SESSION_FILE_PATH))
 	{
 		try {
 			const client = sessions.find(sess => sess.id == sender).client;
 			
-			client.destroy();
-			//fs.rmSync(SESSION_FILE_PATH, { recursive: true, force: true });
-			rimraf.sync(SESSION_FILE_PATH);
+			client.logout().then(response => {
+				console.log("logout");
+					/*client.destroy().then(response => {
+					console.log(response);
+					console.log("destroy");
+					rimraf.sync(SESSION_FILE_PATH);
+					*/
 
+					res.status(200).json({
+							status: true,
+							response: "closed"
+						});
+				/*}).catch(err => {
+					console.log("destroy error");
+					res.status(200).json({
+							status: false,
+							response: "try again"
+						});
+				});*/
+			}).catch(err => {
+				client.destroy().then(response => {
+					console.log(response);
+					console.log("destroy");
+					rimraf.sync(SESSION_FILE_PATH);
+					
 
-			res.status(200).json({
-					status: true,
-					response: "closed"
+					res.status(200).json({
+							status: true,
+							response: "closed"
+						});
+				}).catch(err => {
+					rimraf.sync(SESSION_FILE_PATH);
+					console.log("destroy error");
+					res.status(200).json({
+							status: false,
+							response: "try again"
+						});
 				});
+				console.log("logout error");
+				
+			});
+			
+			/*client.destroy().then(response => {
+				console.log("destroy");
+			}).catch(err => {
+				console.log("destroy error");
+			});*/
+			
+			//client.logout();
+			//client.destroy();
+			//fs.rmSync(SESSION_FILE_PATH, { recursive: true, force: true });
+			
 		}
 		catch (e) {
 			rimraf.sync(SESSION_FILE_PATH);
@@ -436,6 +579,37 @@ app.post('/close', (req, res) => {
 				response: "number is not valid"
 			});
 	}
+
+});
+
+app.post('/state', (req, res) => {
+
+	const sender = req.body.sender;
+	const SESSION_FILE_PATH = `./whatsapp-session-${sender}`;
+
+	if (fs.existsSync(SESSION_FILE_PATH))
+	{
+		console.log(SESSION_FILE_PATH);
+		const client = sessions.find(sess => sess.id == sender).client;
+
+		client.getState().then(response => {
+			res.status(200).json({
+				status: true,
+				response: response
+			});
+		}).catch(err => {
+			res.status(500).json({
+				status: false,
+				response: err
+			});
+		});
+	}else{
+		res.status(200).json({
+				status: false,
+				response: "number is not valid"
+			});
+	}
+	
 
 });
 
