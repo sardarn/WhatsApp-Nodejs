@@ -36,7 +36,7 @@ const getSessionsFile = function() {
 
 
 //const { Client } = require('whatsapp-web.js');
-var qrcode2 = require('qrcode-terminal');
+//var qrcode2 = require('qrcode-terminal');
 
 const createSession = function(id, description,reAuth) {
 	console.log('Creating session: ' + id);
