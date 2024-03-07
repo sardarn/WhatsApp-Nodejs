@@ -24,3 +24,14 @@
 ### then
 
 - sudo chmod 755 install.sh
+- ./install.sh
+- sudo crontab -e
+
+- add line : @reboot bash cron.sh
+- or add line : @reboot ./cron.sh
+
+- sudo systemctl enable cron
+
+- npm run start
+- node app.js
+- forever start app.js
