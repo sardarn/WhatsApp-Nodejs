@@ -10,28 +10,28 @@
 - Scan the QR Code
 - Enjoy!
 
-- git clone https://github.com/sardarn/WhatsApp-Nodejs.git
-- cd WhatsApp-Nodejs
+- `git clone https://github.com/sardarn/WhatsApp-Nodejs.git`
+- `cd WhatsApp-Nodejs`
 
 #### OR
 
-- mkdir WhatsApp-Nodejs
-- cd WhatsApp-Nodejs
-- wget http://site.com/WhatsApp-Nodejs.zip
-- unzip WhatsApp-Nodejs.zip
-- cd WhatsApp-Nodejs
+- `mkdir WhatsApp-Nodejs`
+- `cd WhatsApp-Nodejs`
+- `wget http://site.com/WhatsApp-Nodejs.zip`
+- `unzip WhatsApp-Nodejs.zip`
+- `cd WhatsApp-Nodejs`
 
 ### then
 
-- sudo chmod 755 install.sh
-- ./install.sh
-- sudo crontab -e
+- `sudo chmod 755 install.sh`
+- `./install.sh`
+- `sudo crontab -e`
 
-- add line : @reboot bash cron.sh
-- or add line : @reboot ./cron.sh
+- add line : `@reboot bash cron.sh`
+- or add line : `@reboot ./cron.sh`
 
-- sudo systemctl enable cron
+- `sudo systemctl enable cron`
 
-- npm run start
-- node app.js
-- forever start app.js
+- `npm run start`
+- `node app.js`
+- `forever start app.js`
