@@ -1,16 +1,20 @@
 echo install nodejs
 #
 sudo yum -y update
-curl -sL https://rpm.nodesource.com/setup_12.x | sudo bash -
+#curl -sL https://rpm.nodesource.com/setup_12.x | sudo bash -
+curl -sL https://rpm.nodesource.com/setup_20.x | sudo bash -
 #sudo yum install https://rpm.nodesource.com/pub_20.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
 #sudo yum install nsolid -y
+#curl https://raw.githubusercontent.com/dvershinin/apt-get-centos/master/apt-get.sh -o /usr/local/bin/apt-get
+#chmod 0755 /usr/local/bin/apt-get
+#sudo apt-get install npm
+sudo yum install npm
 sudo yum clean all
 sudo yum makecache fast
 sudo yum install -y gcc-c++ make
 sudo yum install -y nodejs
 sudo yum install unzip
-yum install apt
-sudo apt install cron
+sudo yum install cron
 #
 echo firewall configuratin
 #
