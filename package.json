@@ -23,6 +23,7 @@
     "http": "0.0.1-security",
     "mime-types": "^2.1.32",
     "qrcode": "^1.4.4",
+    "qrcode-terminal": "latest",
     "socket.io": "2.3.0",
     "whatsapp-web.js": "latest"
   },
