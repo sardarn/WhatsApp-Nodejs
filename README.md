@@ -10,6 +10,9 @@
 - Scan the QR Code
 - Enjoy!
 
+
+- `sudo yum -y update`
+- `yum install git -y`
 - `git clone https://github.com/sardarn/WhatsApp-Nodejs.git`
 - `cd WhatsApp-Nodejs`
 
