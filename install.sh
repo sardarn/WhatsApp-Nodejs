@@ -17,7 +17,7 @@ sudo yum makecache fast
 sudo yum install -y gcc-c++ make
 sudo yum install -y nodejs
 sudo yum install unzip
-sudo yum install cron
+sudo yum install cronie
 #
 echo firewall configuratin
 #
