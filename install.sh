@@ -12,6 +12,7 @@ curl -sL https://rpm.nodesource.com/setup_12.x | sudo bash -
 #chmod 0755 /usr/local/bin/apt-get
 #sudo apt-get install npm
 sudo yum install -y nodejs
+sudo yum clean all
 sudo yum install npm
 sudo yum clean all
 sudo yum makecache fast
