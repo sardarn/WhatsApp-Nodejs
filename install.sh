@@ -1,6 +1,9 @@
 echo install nodejs
 #
-sudo yum -y update
+#sudo yum -y update
+sudo yum install dnf
+sudo dnf install nodejs
+sudo dnf install yarn
 curl -sL https://rpm.nodesource.com/setup_12.x | sudo bash -
 #curl -sL https://rpm.nodesource.com/setup_20.x | sudo bash -
 #sudo yum install https://rpm.nodesource.com/pub_20.x/nodistro/repo/nodesource-release-nodistro-1.noarch.rpm -y
