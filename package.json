@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-api",
-  "version": "1.2.0",
+  "version": "1.4.2",
   "description": "Whatsapp api by Sardarn",
   "main": "app.js",
   "scripts": {
@@ -16,18 +16,18 @@
   "license": "MIT",
   "dependencies": {
     "request": "latest",
-    "axios": "^0.20.0",
-    "express": "^4.17.1",
-    "express-fileupload": "^1.2.0",
-    "express-validator": "^6.9.2",
-    "http": "0.0.1-security",
-    "mime-types": "^2.1.32",
-    "qrcode": "^1.4.4",
+    "axios": "latest",
+    "express": "latest",
+    "express-fileupload": "latest",
+    "express-validator": "latest",
+    "http": "latest",
+    "mime-types": "latest",
+    "qrcode": "latest",
     "qrcode-terminal": "latest",
-    "socket.io": "2.3.0",
+    "socket.io": "latest",
     "whatsapp-web.js": "latest"
   },
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "nodemon": "latest"
   }
 }
